@@ -74,18 +74,18 @@ export class PusherMember {
 
 export class PusherChannel {
   channelName: string;
-  members = new Map<String, PusherMember>();
+  members = new Map<string, PusherMember>();
   me?: PusherMember;
-  subscriptionCount?: Number;
+  subscriptionCount?: number;
   onSubscriptionSucceeded?: (data: any) => void;
-  onSubscriptionCount?: (subscriptionCount: Number) => void;
+  onSubscriptionCount?: (subscriptionCount: number) => void;
   onEvent?: (event: any) => void;
   onMemberAdded?: (member: PusherMember) => void;
   onMemberRemoved?: (member: PusherMember) => void;
   constructor(args: {
     channelName: string;
     onSubscriptionSucceeded?: (data: any) => void;
-    onSubscriptionCount?: (subscriptionCount: Number) => void;
+    onSubscriptionCount?: (subscriptionCount: number) => void;
     onEvent?: (member: PusherEvent) => void;
     onMemberAdded?: (member: PusherMember) => void;
     onMemberRemoved?: (member: PusherMember) => void;
@@ -141,14 +141,15 @@ export class Pusher {
 
   public init(args: {
     apiKey: string;
+    host?: string;
     cluster: string;
     authEndpoint?: string;
     useTLS?: boolean;
-    activityTimeout?: Number;
-    pongTimeout?: Number;
-    maxReconnectionAttempts?: Number;
-    maxReconnectGapInSeconds?: Number;
-    authorizerTimeoutInSeconds?: Number;
+    activityTimeout?: number;
+    pongTimeout?: number;
+    maxReconnectionAttempts?: number;
+    maxReconnectGapInSeconds?: number;
+    authorizerTimeoutInSeconds?: number;
     proxy?: string;
     onConnectionStateChange?: (
       currentState: string,
@@ -158,7 +159,7 @@ export class Pusher {
       channelName: string,
       socketId: string
     ) => Promise<PusherAuthorizerResult>;
-    onError?: (message: string, code: Number, e: any) => void;
+    onError?: (message: string, code: number, e: any) => void;
     onEvent?: (event: PusherEvent) => void;
     onSubscriptionSucceeded?: (channelName: string, data: any) => void;
     onSubscriptionError?: (
@@ -168,7 +169,7 @@ export class Pusher {
     ) => void;
     onSubscriptionCount?: (
       channelName: string,
-      subscriptionCount: Number
+      subscriptionCount: number
     ) => void;
     onDecryptionFailure?: (eventName: string, reason: string) => void;
     onMemberAdded?: (channelName: string, member: PusherMember) => void;
@@ -201,10 +202,10 @@ export class Pusher {
       switch (eventName) {
         case 'pusher_internal:subscription_succeeded':
           // Depending on the platform implementation we get json or a Map.
-          var decodedData = data instanceof Object ? data : JSON.parse(data);
+          const decodedData = data instanceof Object ? data : JSON.parse(data);
           for (const _userId in decodedData?.presence?.hash) {
             const userInfo = decodedData?.presence?.hash[_userId];
-            var member = new PusherMember(_userId, userInfo);
+            const member = new PusherMember(_userId, userInfo);
             channel?.members.set(member.userId, member);
             if (_userId === userId && channel) {
               channel.me = member;
@@ -236,7 +237,7 @@ export class Pusher {
     this.addListener(PusherEventName.ON_MEMBER_ADDED, (event) => {
       const user = event.user;
       const channelName = event.channelName;
-      var member = new PusherMember(user.userId, user.userInfo);
+      const member = new PusherMember(user.userId, user.userInfo);
       const channel = this.channels.get(channelName);
       channel?.members.set(member.userId, member);
       args.onMemberAdded?.(channelName, member);
@@ -246,7 +247,7 @@ export class Pusher {
     this.addListener(PusherEventName.ON_MEMBER_REMOVED, (event) => {
       const user = event.user;
       const channelName = event.channelName;
-      var member = new PusherMember(user.userId, user.userInfo);
+      const member = new PusherMember(user.userId, user.userInfo);
       const channel = this.channels.get(channelName);
       channel?.members.delete(member.userId);
       args.onMemberRemoved?.(channelName, member);
@@ -276,6 +277,7 @@ export class Pusher {
 
     return PusherWebsocketReactNative.initialize({
       apiKey: args.apiKey,
+      host: args.host,
       cluster: args.cluster,
       authEndpoint: args.authEndpoint,
       useTLS: args.useTLS,
@@ -284,7 +286,7 @@ export class Pusher {
       maxReconnectionAttempts: args.maxReconnectionAttempts,
       maxReconnectGapInSeconds: args.maxReconnectGapInSeconds,
       authorizerTimeoutInSeconds: args.authorizerTimeoutInSeconds,
-      authorizer: args.onAuthorizer ? true : false,
+      authorizer: !!args.onAuthorizer,
       proxy: args.proxy,
     });
   }
