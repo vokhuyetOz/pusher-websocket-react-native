@@ -198,11 +198,11 @@ export class Pusher {
       const data = event.data;
       const userId = event.userId;
       const channel = this.channels.get(channelName);
+      const decodedData = data instanceof Object ? data : JSON.parse(data);
 
       switch (eventName) {
         case 'pusher_internal:subscription_succeeded':
           // Depending on the platform implementation we get json or a Map.
-          const decodedData = data instanceof Object ? data : JSON.parse(data);
           for (const _userId in decodedData?.presence?.hash) {
             const userInfo = decodedData?.presence?.hash[_userId];
             const member = new PusherMember(_userId, userInfo);
@@ -216,7 +216,6 @@ export class Pusher {
           break;
         case 'pusher_internal:subscription_count':
           // Depending on the platform implementation we get json or a Map.
-          var decodedData = data instanceof Object ? data : JSON.parse(data);
           if (channel) {
             channel.subscriptionCount = decodedData.subscription_count;
           }
